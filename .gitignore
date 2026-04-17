@@ -29,3 +29,5 @@ data/
 results_*.json
 scaling_summary.json
 dashboard.html
+dashboard_advanced.html
+*.json

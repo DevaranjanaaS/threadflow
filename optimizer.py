@@ -1,4 +1,5 @@
 import numpy as np
+from mpi4py import MPI
 
 class SGD:
     def __init__(self, layers, lr=0.01):
@@ -28,7 +29,29 @@ class MomentumSGD:
         for i, layer in enumerate(self.layers):
             if hasattr(layer, 'params'):
                 for key in layer.params:
-                    # v = momentum * v - lr * grad
                     self.velocities[i][key] = self.momentum * self.velocities[i][key] - self.lr * layer.grads[key]
-                    # w = w + v
                     layer.params[key] += self.velocities[i][key]
+
+class QuantumOptimizer:
+    """
+    Standout Feature: Distributed signSGD with Majority Voting.
+    Reduces communication payload and provides robustness via voting logic.
+    """
+    def __init__(self, layers, lr=0.001):
+        self.layers = layers
+        self.lr = lr
+
+    def step(self, comm, size):
+        for layer in self.layers:
+            if hasattr(layer, 'params'):
+                for key in layer.params:
+                    # 1. Compute local gradient sign
+                    local_sign = np.sign(layer.grads[key]).astype(np.int32)
+                    
+                    # 2. Majority Vote: Sum signs across all ranks
+                    global_votes = np.zeros_like(local_sign, dtype=np.int32)
+                    comm.Allreduce(local_sign, global_votes, op=MPI.SUM)
+                    
+                    # 3. Update: If most ranks say "Go right", we go right.
+                    # We move by a fixed step size (LR) in the direction of the majority.
+                    layer.params[key] -= self.lr * np.sign(global_votes)

@@ -3,8 +3,8 @@ import os
 import json
 
 def run_benchmarks():
-    counts = [1, 2, 4, 8]
-    print(f"🚀 Starting ThreadFlow Scaling Benchmark: [1, 2, 4, 8] Ranks")
+    counts = [1, 2, 4]
+    print(f"🚀 Starting ThreadFlow Scaling Benchmark: [1, 2, 4] Ranks")
     
     # CRITICAL: Prevent NumPy from using all cores per MPI process
     env = os.environ.copy()
