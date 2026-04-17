@@ -29,6 +29,18 @@ def generate_html():
     speedup = [t1 / t for t in avg_times]
     ideal_speedup = [float(r) for r in ranks]
 
+    # Strategy Comparison
+    comp_labels = []
+    comp_compute = []
+    comp_comm = []
+    if os.path.exists("strategy_results.json"):
+        with open("strategy_results.json", "r") as f:
+            s_data = json.load(f)
+            for lab, vals in s_data.items():
+                comp_labels.append(lab.replace("regular_acc1", "Classic").replace("regular_acc8", "Accumulation").replace("quantum_acc1", "QuantumSync"))
+                comp_compute.append(sum(vals["compute_times"]) / len(vals["compute_times"]))
+                comp_comm.append(sum(vals["comm_times"]) / len(vals["comm_times"]))
+
     html = f"""
 <!DOCTYPE html>
 <html lang="en">
@@ -58,7 +70,7 @@ def generate_html():
             margin: 0 auto;
         }}
         header {{
-            text_align: center;
+            text-align: center;
             margin-bottom: 50px;
         }}
         h1 {{
@@ -102,8 +114,12 @@ def generate_html():
         </header>
         
         <div class="grid">
+            <div class="card full-width">
+                <h2>Strategy Showdown (Rank 4): Classic vs Accumulation vs Quantum</h2>
+                <canvas id="strategyChart"></canvas>
+            </div>
             <div class="card">
-                <h2>Strong Scaling: Time per Epoch</h2>
+                <h2>Strong Scaling: Time per Epoch (Classic)</h2>
                 <canvas id="scalingChart"></canvas>
             </div>
             <div class="card">
@@ -111,13 +127,29 @@ def generate_html():
                 <canvas id="speedupChart"></canvas>
             </div>
             <div class="card full-width">
-                <h2>Bottleneck Analysis: Compute vs Communication</h2>
+                <h2>Scaling Bottleneck: Compute vs Communication</h2>
                 <canvas id="bottleneckChart"></canvas>
             </div>
         </div>
     </div>
 
     <script>
+        // Strategy Chart
+        new Chart(document.getElementById('strategyChart'), {{
+            type: 'bar',
+            data: {{
+                labels: {json.dumps(comp_labels)},
+                datasets: [
+                    {{ label: 'Compute Time (s)', data: {json.dumps(comp_compute)}, backgroundColor: '#38bdf8' }},
+                    {{ label: 'Comm Time (s)', data: {json.dumps(comp_comm)}, backgroundColor: '#f43f5e' }}
+                ]
+            }},
+            options: {{ 
+                scales: {{ x: {{ stacked: true }}, y: {{ stacked: true }} }},
+                plugins: {{ legend: {{ labels: {{ color: '#f8fafc' }} }} }}
+            }}
+        }});
+
         const ranks = {json.dumps(ranks)};
         
         // Scaling Chart
