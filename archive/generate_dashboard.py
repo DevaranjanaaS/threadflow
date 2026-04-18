@@ -29,17 +29,22 @@ def generate_html():
     speedup = [t1 / t for t in avg_times]
     ideal_speedup = [float(r) for r in ranks]
 
-    # Strategy Comparison
+    # Strategy Comparison (Looking at 4 Processors)
     comp_labels = []
     comp_compute = []
     comp_comm = []
-    if os.path.exists("strategy_results.json"):
-        with open("strategy_results.json", "r") as f:
-            s_data = json.load(f)
-            for lab, vals in s_data.items():
-                comp_labels.append(lab.replace("regular_acc1", "Classic").replace("regular_acc8", "Accumulation").replace("quantum_acc1", "QuantumSync"))
-                comp_compute.append(sum(vals["compute_times"]) / len(vals["compute_times"]))
-                comp_comm.append(sum(vals["comm_times"]) / len(vals["comm_times"]))
+    if os.path.exists("comprehensive_results.json"):
+        with open("comprehensive_results.json", "r") as f:
+            c_data = json.load(f)
+            # We compare at rank 4 as it's a common baseline
+            comp_rank = "4"
+            for strat, results in c_data.items():
+                if comp_rank in results:
+                    label = strat.replace("regular_acc1", "Classic").replace("regular_acc8", "Accumulation").replace("quantum_acc1", "QuantumSync")
+                    comp_labels.append(label)
+                    metrics = results[comp_rank]
+                    comp_compute.append(sum(metrics["compute_times"]) / len(metrics["compute_times"]))
+                    comp_comm.append(sum(metrics["comm_times"]) / len(metrics["comm_times"]))
 
     html = f"""
 <!DOCTYPE html>
@@ -115,11 +120,12 @@ def generate_html():
         
         <div class="grid">
             <div class="card full-width">
-                <h2>Strategy Showdown (Rank 4): Classic vs Accumulation vs Quantum</h2>
+                <h2>Strategy Showdown (4 Processors): Classic vs Accumulation vs Quantum</h2>
                 <canvas id="strategyChart"></canvas>
             </div>
             <div class="card">
                 <h2>Strong Scaling: Time per Epoch (Classic)</h2>
+                <p>Scaling across multiple processors</p>
                 <canvas id="scalingChart"></canvas>
             </div>
             <div class="card">
@@ -150,13 +156,13 @@ def generate_html():
             }}
         }});
 
-        const ranks = {json.dumps(ranks)};
+        const processors = {json.dumps(ranks)};
         
         // Scaling Chart
         new Chart(document.getElementById('scalingChart'), {{
             type: 'line',
             data: {{
-                labels: ranks,
+                labels: processors,
                 datasets: [
                     {{ label: 'Actual Time (s)', data: {json.dumps(avg_times)}, borderColor: '#38bdf8', tension: 0.1 }},
                     {{ label: 'Ideal Time (s)', data: {json.dumps(ideal_times)}, borderColor: '#64748b', borderDash: [5,5], tension: 0.1 }}
@@ -169,7 +175,7 @@ def generate_html():
         new Chart(document.getElementById('speedupChart'), {{
             type: 'line',
             data: {{
-                labels: ranks,
+                labels: processors,
                 datasets: [
                     {{ label: 'Actual Speedup', data: {json.dumps(speedup)}, borderColor: '#818cf8', tension: 0.1 }},
                     {{ label: 'Ideal Linear', data: {json.dumps(ideal_speedup)}, borderColor: '#64748b', borderDash: [5,5], tension: 0.1 }}
@@ -182,7 +188,7 @@ def generate_html():
         new Chart(document.getElementById('bottleneckChart'), {{
             type: 'bar',
             data: {{
-                labels: ranks,
+                labels: processors,
                 datasets: [
                     {{ label: 'Compute Time (s)', data: {json.dumps(compute_times)}, backgroundColor: '#38bdf8' }},
                     {{ label: 'Comm Time (s)', data: {json.dumps(comm_times)}, backgroundColor: '#f43f5e' }}

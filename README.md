@@ -1,36 +1,50 @@
-# ThreadFlow Neural Engine
+# 🧵 ThreadFlow Elite: Distributed Neural Engine
 
-A high-performance, transparent neural network training engine built from scratch using Python, NumPy, and mpi4py.
+ThreadFlow Elite is a high-performance, distributed neural network training framework built from scratch using Python, NumPy, and MPI. It is designed to demonstrate advanced parallel computing strategies, specifically focusing on the trade-off between **communication latency hiding** and **frequency reduction**.
 
-## Features
-- **Scratch Implementation**: Core neural network components (layers, optimizers, loss functions) implemented using only NumPy.
-- **Parallel Training**: Data parallelism implementation using MPI (`mpi4py`) for scaling training across multiple CPU cores.
-- **High Performance**: Optimized for speed and transparency, achieving high accuracy on the MNIST dataset.
-- **Benchmarking Tools**: Scripts to run benchmarks and analyze scaling performance.
-- **Visualization Dashboard**: Automatically generated HTML dashboard to visualize training results and scaling efficiency.
+## 🚀 Key Features
 
-## Project Structure
-- `engine.py`: Core neural network engine logic.
-- `model.py`: Model architecture definitions.
-- `optimizer.py`: Implementation of optimization algorithms (e.g., SGD).
-- `data_loader.py`: Parallel data loading and preprocessing.
-- `train_parallel.py`: Main script for parallel training using MPI.
-- `train_professional.py`: Advanced training script with logging and result tracking.
-- `run_benchmarks.py`: Utility to run benchmarks across different process counts.
-- `generate_dashboard.py`: Tool to generate a visual performance dashboard.
+### 1. The Parallel Duel (Optimization Strategies)
+ThreadFlow pits two world-class distributed strategies against each other:
+*   **Overlap SGD (Latency Hiding)**: Uses non-blocking `MPI_Iallreduce` to mask network synchronization by performing communication in the background while the CPU computes the next layer's gradients.
+*   **Accumulation SGD (Frequency Reduction)**: Minimizes expensive MPI handshakes by buffering gradients locally and only synchronizing once every N steps (Accumulation).
 
-## Setup
-1. Clone the repository.
-2. Install dependencies: `pip install numpy mpi4py`.
-3. Ensure you have an MPI implementation installed on your system (e.g., OpenMPI or MPICH).
+### 2. Live Training Dashboard
+A premium, dark-themed visualizer built with `matplotlib` that streams live Loss and Accuracy curves from the distributed ranks using a real-time telemetry bridge.
 
-## Usage
-To run the parallel training:
+### 3. Dataset Intelligence
+Fully integrated support for both **MNIST** (Digits) and **Fashion-MNIST** (Clothing) with automated sharding and performance benchmarking across both datasets.
+
+## 🛠️ Installation
+
 ```bash
-mpirun -np 4 python train_parallel.py
+pip install -r requirements.txt
 ```
 
-To run benchmarks:
+*Note: Requires an MPI implementation (e.g., OpenMPI or MPICH) installed on your system.*
+
+## 📈 Usage
+
+### Run the Live Demo
+**Terminal 1 (The Engine):**
 ```bash
-python run_benchmarks.py
+mpirun --oversubscribe -n 4 .venv/bin/python3 train_overlap.py
 ```
+**Terminal 2 (The Eyes):**
+```bash
+.venv/bin/python3 live_dashboard.py
+```
+
+### Run the Analytics Suite
+To generate the "Parallel Duel" report comparing datasets and strategies:
+```bash
+python3 run_comparisons.py
+python3 generate_dashboard_advanced.py
+# Open dashboard_advanced.html in your browser
+```
+
+## 📁 System Architecture
+*   `engine.py`: Core neural network components (Linear, ReLU, CrossEntropy).
+*   `optimizer.py`: Elite parallel optimizers (Overlap & Accumulation).
+*   `data_loader.py`: Universal dataset loader with stable AWS mirrors.
+*   `archive/`: Contains experimental features (QuantumSync, Pipeline Parallelism, etc.).

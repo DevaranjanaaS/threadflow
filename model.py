@@ -7,9 +7,13 @@ class Model:
             x = layer.forward(x)
         return x
 
-    def backward(self, grad_output):
-        for layer in reversed(self.layers):
+    def backward(self, grad_output, on_layer_backward=None):
+        for i, layer in enumerate(reversed(self.layers)):
             grad_output = layer.backward(grad_output)
+            if on_layer_backward:
+                # We need the original index for the optimizer
+                original_idx = len(self.layers) - 1 - i
+                on_layer_backward(original_idx, layer)
         return grad_output
 
     def params(self):

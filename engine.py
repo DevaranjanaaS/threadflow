@@ -26,8 +26,17 @@ class Linear(Layer):
     def backward(self, grad_output):
         # grad_output shape: (batch_size, out_dim)
         # self.x shape: (batch_size, in_dim)
-        self.grads['W'] = self.x.T @ grad_output
-        self.grads['b'] = np.sum(grad_output, axis=0, keepdims=True)
+        # Accumulate gradients (needed for micro-batching)
+        grad_W = self.x.T @ grad_output
+        grad_b = np.sum(grad_output, axis=0, keepdims=True)
+        
+        if 'W' not in self.grads:
+            self.grads['W'] = grad_W
+            self.grads['b'] = grad_b
+        else:
+            self.grads['W'] += grad_W
+            self.grads['b'] += grad_b
+            
         return grad_output @ self.params['W'].T
 
 class ReLU(Layer):
